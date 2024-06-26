@@ -18,6 +18,8 @@ const config: Config = {
 				errorColor: "#C92532",
 				primaryBorder: "#dce4ff",
 				primary: "#546fff",
+				successColor: "#9cd323",
+				infoDark: "#102e7a",
 			},
 		},
 	},

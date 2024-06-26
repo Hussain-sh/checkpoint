@@ -1,4 +1,18 @@
+"use client";
+
+import { mailAction } from "@/app/actions/authentication/mailAction";
+import { useState } from "react";
+
 export default function ForgotPasswordPage() {
+	const [email, setEmail] = useState<string>("");
+	const [error, setError] = useState<string>("");
+	const [showMsg, setShowMsg] = useState<boolean>(false);
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setShowMsg(true);
+		const response = await mailAction({ email });
+		setError(response?.message || "");
+	};
 	return (
 		<div className="w-1/3 flex justify-center items-center bg-white z-20 h-auto rounded-xl p-10 relative">
 			<div className="w-16 h-16 bg-white border border-primaryBorder rounded-full flex justify-center items-center absolute -top-8">
@@ -25,10 +39,18 @@ export default function ForgotPasswordPage() {
 						Forgot Password
 					</h1>
 					<p className="text-sm text-center font-thin">
-						Please enter your email to reset your password
+						Please enter your email.
 					</p>
+					{showMsg && (
+						<p className="text-base text-center font-normal text-infoDark">
+							A link will be sent to this email to reset your password
+						</p>
+					)}
 				</div>
-				<form className="w-full flex flex-col gap-6 py-4">
+				<form
+					onSubmit={handleSubmit}
+					className="w-full flex flex-col gap-6 py-4"
+				>
 					<div className="flex flex-col gap-3 justify-start items-center">
 						<div className="w-full flex justify-between items-center">
 							<label
@@ -37,25 +59,30 @@ export default function ForgotPasswordPage() {
 							>
 								Email
 							</label>
-							<div className="flex gap-1 items-center">
-								<svg
-									className="w-5 h-3"
-									viewBox="0 0 18 16"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										d="M8.73281 1.9793C8.78906 1.88438 8.89102 1.82812 9 1.82812C9.10898 1.82812 9.21094 1.88438 9.26719 1.9793L16.2387 13.4297C16.2879 13.5105 16.3125 13.602 16.3125 13.6934C16.3125 13.9746 16.084 14.2031 15.8027 14.2031H2.19727C1.91602 14.2031 1.6875 13.9746 1.6875 13.6934C1.6875 13.5984 1.71211 13.507 1.76133 13.4297L8.73281 1.9793ZM7.29141 1.10039L0.319922 12.5508C0.108984 12.8953 0 13.2891 0 13.6934C0 14.9062 0.984375 15.8906 2.19727 15.8906H15.8027C17.0156 15.8906 18 14.9062 18 13.6934C18 13.2891 17.8875 12.8953 17.6801 12.5508L10.7086 1.10039C10.3465 0.50625 9.69961 0.140625 9 0.140625C8.30039 0.140625 7.65352 0.50625 7.29141 1.10039ZM10.125 11.9531C10.125 11.6548 10.0065 11.3686 9.79549 11.1576C9.58452 10.9467 9.29837 10.8281 9 10.8281C8.70163 10.8281 8.41548 10.9467 8.20451 11.1576C7.99353 11.3686 7.875 11.6548 7.875 11.9531C7.875 12.2515 7.99353 12.5376 8.20451 12.7486C8.41548 12.9596 8.70163 13.0781 9 13.0781C9.29837 13.0781 9.58452 12.9596 9.79549 12.7486C10.0065 12.5376 10.125 12.2515 10.125 11.9531ZM9.84375 5.48438C9.84375 5.0168 9.46758 4.64062 9 4.64062C8.53242 4.64062 8.15625 5.0168 8.15625 5.48438V8.85938C8.15625 9.32695 8.53242 9.70312 9 9.70312C9.46758 9.70312 9.84375 9.32695 9.84375 8.85938V5.48438Z"
-										fill="#C92532"
-									/>
-								</svg>
-								<p className="text-xs text-errorColor">Email does not exist</p>
-							</div>
+							{error && (
+								<div className="flex gap-1 items-center">
+									<svg
+										className="w-5 h-3"
+										viewBox="0 0 18 16"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M8.73281 1.9793C8.78906 1.88438 8.89102 1.82812 9 1.82812C9.10898 1.82812 9.21094 1.88438 9.26719 1.9793L16.2387 13.4297C16.2879 13.5105 16.3125 13.602 16.3125 13.6934C16.3125 13.9746 16.084 14.2031 15.8027 14.2031H2.19727C1.91602 14.2031 1.6875 13.9746 1.6875 13.6934C1.6875 13.5984 1.71211 13.507 1.76133 13.4297L8.73281 1.9793ZM7.29141 1.10039L0.319922 12.5508C0.108984 12.8953 0 13.2891 0 13.6934C0 14.9062 0.984375 15.8906 2.19727 15.8906H15.8027C17.0156 15.8906 18 14.9062 18 13.6934C18 13.2891 17.8875 12.8953 17.6801 12.5508L10.7086 1.10039C10.3465 0.50625 9.69961 0.140625 9 0.140625C8.30039 0.140625 7.65352 0.50625 7.29141 1.10039ZM10.125 11.9531C10.125 11.6548 10.0065 11.3686 9.79549 11.1576C9.58452 10.9467 9.29837 10.8281 9 10.8281C8.70163 10.8281 8.41548 10.9467 8.20451 11.1576C7.99353 11.3686 7.875 11.6548 7.875 11.9531C7.875 12.2515 7.99353 12.5376 8.20451 12.7486C8.41548 12.9596 8.70163 13.0781 9 13.0781C9.29837 13.0781 9.58452 12.9596 9.79549 12.7486C10.0065 12.5376 10.125 12.2515 10.125 11.9531ZM9.84375 5.48438C9.84375 5.0168 9.46758 4.64062 9 4.64062C8.53242 4.64062 8.15625 5.0168 8.15625 5.48438V8.85938C8.15625 9.32695 8.53242 9.70312 9 9.70312C9.46758 9.70312 9.84375 9.32695 9.84375 8.85938V5.48438Z"
+											fill="#C92532"
+										/>
+									</svg>
+									<p className="text-xs text-errorColor">
+										Email does not exist
+									</p>
+								</div>
+							)}
 						</div>
 						<input
 							type="text"
 							className="w-full px-6 h-10 text-secondary text-base formInputStyle"
 							name="email"
+							onChange={(e) => setEmail(e.target.value)}
 						/>
 					</div>
 					<div className="flex flex-col gap-2 items-center justify-center ">

@@ -2,6 +2,8 @@
 import pool from "@/utils/postgres";
 import { addUserQuery } from "@/app/dbQueries/user-management";
 import { hashPassword } from "@/utils/services/hashPassword";
+import { generateToken } from "@/utils/services/generateToken";
+import { sendVerificationEmail } from "@/utils/services/sendEmail";
 
 interface UserData {
 	firstName: string;
@@ -76,6 +78,7 @@ export async function signUpAction(userData: UserData) {
 		};
 	}
 
+	const verificationToken = generateToken();
 	const client = await pool.connect();
 	try {
 		await client.query(addUserQuery, [
@@ -83,13 +86,16 @@ export async function signUpAction(userData: UserData) {
 			lastName,
 			email,
 			hashedPassword,
+			verificationToken,
 		]);
+
+		await sendVerificationEmail(email, verificationToken);
+		return {
+			success: true,
+		};
 	} catch (error) {
 		console.error("Error adding user:", error);
+	} finally {
+		client.release();
 	}
-
-	return {
-		success: true,
-		message: "User signed up successfully!",
-	};
 }

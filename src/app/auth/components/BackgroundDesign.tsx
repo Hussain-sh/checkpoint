@@ -1,5 +1,5 @@
 import Image from "next/image";
-import bgImage from "../../../assets/background.jpg";
+import bgImage from "../../../assets/images/background.jpg";
 const BackgroundDesign: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {

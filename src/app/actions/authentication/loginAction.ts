@@ -12,8 +12,7 @@ export async function loginAction(email: string, password: string) {
 		if (result.rowCount === 0) {
 			return {
 				success: false,
-				message: "Email not found.",
-				errors: [{ field: "email", message: "Email not found." }],
+				errors: [{ field: "email" }],
 			};
 		}
 
@@ -24,8 +23,19 @@ export async function loginAction(email: string, password: string) {
 		if (!isPasswordValid) {
 			return {
 				success: false,
-				message: "Invalid password.",
-				errors: [{ field: "password", message: "Invalid password." }],
+				errors: [{ field: "password" }],
+			};
+		}
+
+		// Check if email is verified
+		if (!user.is_email_verified) {
+			return {
+				success: false,
+				errors: [
+					{
+						field: "verification",
+					},
+				],
 			};
 		}
 
