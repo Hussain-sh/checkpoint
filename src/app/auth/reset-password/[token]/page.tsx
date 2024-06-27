@@ -3,6 +3,7 @@ import { updatePasswordAction } from "@/app/actions/authentication/updatePasswor
 import { evaluatePasswordStrength } from "@/utils/services/evaluatePasswordStrength";
 import Link from "next/link";
 import { useState } from "react";
+import FormSubmitButton from "../../components/FormSubmitButton";
 
 interface Params {
 	token: string;
@@ -23,6 +24,7 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
 	const [newPassword, setNewPassword] = useState<string>("");
 	const [confirmPassword, setConfirmPassword] = useState<string>("");
 	const [showPassword, setShowPassword] = useState<boolean>(false);
+	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [showConfirmPassword, setShowConfirmPassword] =
 		useState<boolean>(false);
 	const [showPasswordSuggestions, setShowPasswordSuggestions] =
@@ -41,14 +43,20 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setIsSubmitting(true);
 		const response = await updatePasswordAction({
 			newPassword,
 			confirmPassword,
 			token: params.token,
 		});
-		setError(response?.type || "");
+
 		if (response?.success) {
+			setError("");
+			setIsSubmitting(false);
 			setShowMsg(true);
+		} else {
+			setIsSubmitting(false);
+			setError(response?.type || "");
 		}
 	};
 
@@ -411,12 +419,10 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
 							</div>
 						</div>
 						<div className="flex flex-col gap-2 items-center justify-center ">
-							<button
-								type="submit"
-								className="w-full py-2 bg-primary text-white text-sm font-medium text-center rounded-full"
-							>
-								Reset Password
-							</button>
+							<FormSubmitButton
+								buttonText="Reset Password"
+								isSubmitting={isSubmitting}
+							/>
 						</div>
 					</form>
 				</div>

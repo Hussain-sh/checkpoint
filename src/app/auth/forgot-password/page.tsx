@@ -2,16 +2,26 @@
 
 import { mailAction } from "@/app/actions/authentication/mailAction";
 import { useState } from "react";
+import FormSubmitButton from "../components/FormSubmitButton";
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState<string>("");
 	const [error, setError] = useState<string>("");
 	const [showMsg, setShowMsg] = useState<boolean>(false);
+	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setShowMsg(true);
+		setIsSubmitting(true);
 		const response = await mailAction({ email });
-		setError(response?.message || "");
+		if (response?.success) {
+			setError("");
+			setIsSubmitting(false);
+			setShowMsg(true);
+		} else {
+			setIsSubmitting(false);
+			setShowMsg(false);
+			setError(response?.message || "");
+		}
 	};
 	return (
 		<div className="w-1/3 flex justify-center items-center bg-white z-20 h-auto rounded-xl p-10 relative">
@@ -72,9 +82,7 @@ export default function ForgotPasswordPage() {
 											fill="#C92532"
 										/>
 									</svg>
-									<p className="text-xs text-errorColor">
-										Email does not exist
-									</p>
+									<p className="text-xs text-errorColor">Invalid Details</p>
 								</div>
 							)}
 						</div>
@@ -86,12 +94,10 @@ export default function ForgotPasswordPage() {
 						/>
 					</div>
 					<div className="flex flex-col gap-2 items-center justify-center ">
-						<button
-							type="submit"
-							className="w-full py-2 bg-primary text-white text-sm font-medium text-center rounded-full"
-						>
-							Send Email
-						</button>
+						<FormSubmitButton
+							buttonText="Send Email"
+							isSubmitting={isSubmitting}
+						/>
 					</div>
 				</form>
 			</div>

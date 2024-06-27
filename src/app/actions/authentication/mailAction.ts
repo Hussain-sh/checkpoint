@@ -14,6 +14,7 @@ export async function mailAction({ email }: { email: string }) {
 		const user = result.rows[0];
 		if (result.rowCount === 0) {
 			return {
+				success: false,
 				message: "Email not found.",
 			};
 		}
@@ -21,6 +22,10 @@ export async function mailAction({ email }: { email: string }) {
 		const token = generateToken();
 		await sendForgotPasswordEmail(user.email, token);
 		await client.query(saveForgotPasswordToken, [token, user.email]);
+		return {
+			success: true,
+			message: "Email Sent",
+		};
 	} catch (error) {
 		console.error("Error sending email", error);
 	} finally {

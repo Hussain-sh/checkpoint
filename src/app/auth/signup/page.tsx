@@ -4,6 +4,7 @@ import { evaluatePasswordStrength } from "@/utils/services/evaluatePasswordStren
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import FormSubmitButton from "../components/FormSubmitButton";
 
 interface ErrorMsg {
 	field: string;
@@ -24,6 +25,7 @@ export default function SignUpPage() {
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [confirmPassword, setConfirmPassword] = useState<string>("");
+	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [showPasswordSuggestions, setShowPasswordSuggestions] =
 		useState<boolean>(false);
 	const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -70,6 +72,7 @@ export default function SignUpPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setIsSubmitting(true);
 		const userData = {
 			firstName: firstName,
 			lastName: lastName,
@@ -82,8 +85,10 @@ export default function SignUpPage() {
 			const response = await signUpAction(userData);
 			if (response?.success) {
 				router.push("/auth/verify-email");
+				setIsSubmitting(true);
 				setErrors([]);
 			} else {
+				setIsSubmitting(false);
 				setErrors(response?.errors || []);
 			}
 		} catch (error) {
@@ -520,12 +525,10 @@ export default function SignUpPage() {
 								)}
 							</div>
 						</div>
-						<button
-							type="submit"
-							className="w-full py-2 bg-primary text-white text-sm font-medium text-center rounded-full"
-						>
-							Sign Up
-						</button>
+						<FormSubmitButton
+							buttonText="Sign Up"
+							isSubmitting={isSubmitting}
+						/>
 						<p className="text-sm font-light text-center text-secondary">
 							Already have an account?
 							<Link href="/auth/login" className="text-primary underline px-1">
