@@ -20,6 +20,8 @@ const config: Config = {
 				primary: "#546fff",
 				successColor: "#9cd323",
 				infoDark: "#102e7a",
+				iconColor: "#C9D4E4",
+				activeIconColor: "#307EF3",
 			},
 		},
 	},

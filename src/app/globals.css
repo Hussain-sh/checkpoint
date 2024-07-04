@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	background-color: #f6f6fb;
+}
+
+.activeIconColor {
+	fill: #307ef3;
+}
+
+.iconColor {
+	fill: #c9d4e4;
+}
+
 .formInputStyle {
 	border-width: 2px;
 	border-style: solid;
 	border-color: #dce4ff;
-	border-radius: 9999px;
+	border-radius: 10px;
 }
 
 .formInputStyle:focus {
