@@ -4,31 +4,32 @@ import Link from "next/link";
 import Image from "next/image";
 import getProfileDetails from "@/app/actions/profile-management/getProfileDetailsAction";
 import defaultAvatar from "../../../../public/images/profilepictures/avatar.png";
+import { formateDate } from "@/utils/services/formatDate";
 
 interface ProfileDetails {
 	first_name: string;
 	last_name: string;
 	email: string;
-	date_of_birth: string;
+	date_of_birth: Date;
 	phone_number: string;
 	profile_picture: string;
 }
 
 export default async function ProfilePage() {
 	try {
+		// get profile data from the session object
 		const session = await getServerSession(options);
-		if (!session?.user?.email) {
+		const id = session?.user?.id;
+		if (!id) {
 			throw new Error("User not authenticated");
 		}
-		const email = session?.user?.email;
-		const profileDetails: ProfileDetails = await getProfileDetails(email);
+
+		const profileDetails: ProfileDetails = await getProfileDetails(id);
 
 		if (!profileDetails) {
 			throw new Error("Profile details not found");
 		}
-		const dateOfBirth = new Date(
-			profileDetails.date_of_birth
-		).toLocaleDateString();
+		const dateOfBirth = formateDate(profileDetails.date_of_birth);
 		return (
 			<div className="flex flex-col">
 				<div className="w-4/5 p-4 flex flex-col gap-4 justify-start">

@@ -15,5 +15,5 @@ export const getProfileDetailsQuery = `
     select 
     first_name, last_name, email, date_of_birth, phone_number, profile_picture
     from users
-    where email = $1
+    where id = $1
 `;

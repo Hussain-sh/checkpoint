@@ -1,5 +1,5 @@
 export const getRolesQuery = `
-    select role_name from user_roles
+    select id, role_name from user_roles
 `;
 
 export const getPermissionsQuery = `
@@ -8,6 +8,10 @@ export const getPermissionsQuery = `
 
 export const getRoleIdByRoleNameQuery = `
     select id from user_roles where role_name = $1
+`;
+
+export const getRoleNameByRoleIdQuery = `
+    select role_name from user_roles where id = $1
 `;
 
 export const getPermissionIdFromPermissionNameQuery = `

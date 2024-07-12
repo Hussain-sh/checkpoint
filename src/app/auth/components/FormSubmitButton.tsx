@@ -12,7 +12,11 @@ export default function FormSubmitButton({
 		<button
 			disabled={isSubmitting}
 			type="submit"
-			className="w-full py-2 bg-primary text-white text-sm font-medium text-center rounded-full"
+			className={`${
+				buttonText.startsWith("Add") || buttonText.startsWith("Update")
+					? "w-40"
+					: "w-full"
+			} py-2 bg-primary text-white text-sm font-medium text-center rounded-full`}
 		>
 			{isSubmitting ? "Submitting..." : buttonText}
 		</button>

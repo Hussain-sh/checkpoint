@@ -6,11 +6,13 @@ interface ProfilePictureProps {
 	name: string;
 	label: string;
 	source: string;
+	onImagePicked: (image: string | null) => void;
 }
 export default function ProfilePicture({
 	name,
 	label,
 	source,
+	onImagePicked,
 }: ProfilePictureProps) {
 	const [pickedImage, setPickedImage] = useState<string | null>();
 	const imageInput = useRef<HTMLInputElement>(null);
@@ -29,6 +31,10 @@ export default function ProfilePicture({
 			const result = fileReader.result;
 			if (result && typeof result === "string") {
 				setPickedImage(result);
+				// the older image should be picked if profile picture is not updated
+				onImagePicked(result);
+			} else {
+				setPickedImage(null);
 			}
 		};
 
@@ -46,7 +52,9 @@ export default function ProfilePicture({
 			</label>
 			<div className="flex items-start gap-6 mb-4">
 				<div className="w-32 h-32 border border-[#a4abb9] flex items-center justify-center text-center tex-[#a4abb9] relative">
-					{!pickedImage && <p className="m-0 p-4">No Image picked yet</p>}
+					{(!pickedImage || source === null) && (
+						<p className="m-0 p-4">No Image picked yet</p>
+					)}
 					{pickedImage ? (
 						<Image
 							src={pickedImage}
@@ -73,7 +81,6 @@ export default function ProfilePicture({
 					accept="image/*"
 					ref={imageInput}
 					onChange={handleImagePicked}
-					required
 				/>
 				<button
 					type="button"

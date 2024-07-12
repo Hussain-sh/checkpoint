@@ -11,6 +11,7 @@ export default async function Sidebar() {
 		1: ["H", "U", "R"],
 		2: ["H", "P"],
 		3: ["H", "P"],
+		9: ["H", "P"],
 	};
 	const session = await getServerSession(options);
 	const user = session?.user as { role_id?: number } | undefined;

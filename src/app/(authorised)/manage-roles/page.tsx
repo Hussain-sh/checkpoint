@@ -1,133 +1,101 @@
 "use client";
-import { addPermissions } from "@/app/actions/role-management/addPermissions";
-import getPermissionIdFromPermissionName from "@/app/actions/role-management/getPermissionIdFromPermissionName";
-import { getPermissions } from "@/app/actions/role-management/getPermissions";
-import { getRoleIdByRoleName } from "@/app/actions/role-management/getRoleIdByRoleName";
+import React, { useEffect, useState } from "react";
 import { getRoles } from "@/app/actions/role-management/getRoles";
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import Link from "next/link";
 import getSelectedRolePermissions from "@/app/actions/role-management/getSelectedRolePermissions";
-import { useState, useEffect } from "react";
 
-interface PermissionTypes {
+interface Role {
 	id: number;
-	permission_name: string;
+	role_name: string;
+	permissions?: string;
 }
 
-export default function ManageRolesPage() {
-	const [selectedRole, setSelectedRole] = useState("");
-	const [roles, setRoles] = useState<{ role_name: string }[]>([]);
-	const [permissions, setPermissions] = useState<PermissionTypes[]>([]);
-	const [roleId, setRoleId] = useState<number | null>(null);
-	const [checkedPermissions, setCheckedPermissions] = useState<{
-		[key: string]: boolean;
-	}>({});
-	const [message, setMessage] = useState<string>("");
-	const [selectedRolePermissions, setSelectedRolePermissions] = useState<
-		string[]
-	>([]);
-
-	//fetch roles on page load
+const RolesPage: React.FC = () => {
+	const [roles, setRoles] = useState<Role[]>([]);
 	useEffect(() => {
 		const fetchRoles = async () => {
-			const result = await getRoles();
-			setRoles(result ?? []);
+			const rolesData: Role[] = (await getRoles()) ?? [];
+
+			for (let role of rolesData) {
+				const permissions = await getSelectedRolePermissions(role.id); // get permissions for evvery role
+				const permissionNames =
+					permissions?.map((p) => p.permission_name) ?? []; // get all permission names for every role
+				const truncatedPermissions =
+					permissionNames.length > 4
+						? permissionNames?.slice(0, 4).join(", ") + "..."
+						: permissionNames?.join(", "); // separacte permission names with commas and if permissions are more than 4 add ...
+				role.permissions = truncatedPermissions;
+			}
+
+			setRoles(rolesData);
 		};
+
 		fetchRoles();
 	}, []);
 
-	// get role id from selected role and get all permissions
-	useEffect(() => {
-		const fetchRoleData = async () => {
-			const roleData = await getRoleIdByRoleName(selectedRole);
-			const permissionsData = await getPermissions();
-			if (roleData?.id) {
-				const response = await getSelectedRolePermissions(roleData?.id);
-				setCheckedPermissions(
-					response?.reduce((acc, permission) => {
-						acc[permission.permission_name] = true;
-						return acc;
-					}, {})
+	const columnDefs: ColDef[] = [
+		{ headerName: "Id", field: "id", sortable: false, hide: true },
+		{
+			headerName: "Role",
+			field: "role_name",
+			sortable: false,
+		},
+		{
+			headerName: "Permissions",
+			field: "permissions",
+			sortable: false,
+			minWidth: 600,
+		},
+		{
+			headerName: "Actions",
+			field: "actions",
+			sortable: false,
+			cellRenderer: (params: any) => {
+				const id = params.data.id;
+				return (
+					<div className="flex justify-center items-center gap-4">
+						<Link href={`/roles/${id}`} className="h-full w-full">
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 20 20"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									fillRule="evenodd"
+									clip-rule="evenodd"
+									d="M7.81366 16.6899L15.1357 7.2212C15.5336 6.71059 15.6751 6.12025 15.5424 5.51916C15.4275 4.97271 15.0914 4.45314 14.5874 4.05899L13.3582 3.08255C12.2882 2.23153 10.9618 2.32111 10.2013 3.29755L9.37887 4.36446C9.27276 4.49793 9.29929 4.69501 9.43193 4.80251C9.43193 4.80251 11.51 6.46872 11.5542 6.50455C11.6957 6.63892 11.8018 6.81808 11.8284 7.03308C11.8726 7.45411 11.5808 7.84827 11.1475 7.90201C10.9441 7.92889 10.7495 7.86618 10.608 7.74973L8.42383 6.01185C8.31771 5.93213 8.15854 5.94915 8.07011 6.05664L2.87928 12.7752C2.54325 13.1963 2.42829 13.7427 2.54325 14.2712L3.20647 17.1468C3.24184 17.2991 3.37449 17.4066 3.53366 17.4066L6.45185 17.3707C6.98242 17.3618 7.47763 17.1199 7.81366 16.6899ZM11.8997 15.7944H16.6581C17.1224 15.7944 17.5 16.1769 17.5 16.6472C17.5 17.1184 17.1224 17.5 16.6581 17.5H11.8997C11.4355 17.5 11.0579 17.1184 11.0579 16.6472C11.0579 16.1769 11.4355 15.7944 11.8997 15.7944Z"
+									fill="#3983F4"
+								/>
+							</svg>
+						</Link>
+					</div>
 				);
-			}
-			setRoleId(roleData?.id ?? null);
-			setPermissions(permissionsData ?? []);
-		};
-
-		if (selectedRole) {
-			fetchRoleData();
-		}
-	}, [selectedRole]);
-
-	const handleRoleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setMessage("");
-		setSelectedRole(e.target.value);
-	};
-
-	// toggle state of permissions on click of checkbox
-	const handleCheckBoxClick = (permissionName: string) => {
-		setCheckedPermissions((prevState) => ({
-			...prevState,
-			[permissionName]: !prevState[permissionName],
-		}));
-	};
-
-	// fetch all checked permissions and role and add to the database
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		const selectedPermissions = Object.keys(checkedPermissions).filter(
-			(key) => checkedPermissions[key]
-		);
-
-		for (const permName of selectedPermissions) {
-			const perm = await getPermissionIdFromPermissionName(permName);
-			if (perm && perm.id) {
-				const response = await addPermissions(roleId, perm.id);
-				setMessage(response?.message || "");
-			}
-		}
-	};
+			},
+		},
+	];
 
 	return (
-		<form
-			className="flex flex-col justify-center items-center"
-			onSubmit={handleSubmit}
-		>
-			<div className="flex flex-col gap-2 py-12 items-center justify-center">
-				<div className="flex gap-2 justify-center">
-					<label htmlFor="roles">Select a Role:</label>
-					<select id="roles" value={selectedRole} onChange={handleRoleChange}>
-						<option value="">Select...</option>
-						{roles.map((role, index) => (
-							<option key={index} value={role.role_name}>
-								{role.role_name}
-							</option>
-						))}
-					</select>
+		<>
+			<div className="w-full h-auto flex justify-end items-center gap-4 py-4 px-10">
+				<Link href="/add-role">
+					<button className="px-2 py-2 text-white bg-primary text-center">
+						Add Role
+					</button>
+				</Link>
+			</div>
+			<div className="h-[80vh] w-full px-10">
+				<div className="ag-theme-quartz mx-auto w-full h-full overflow-auto ">
+					<AgGridReact rowData={roles} columnDefs={columnDefs} />
 				</div>
 			</div>
-			{selectedRole && (
-				<div className="flex flex-wrap p-4 gap-4">
-					{permissions.map(({ id, permission_name }) => (
-						<div className="flex flex-row-reverse gap-2" key={id}>
-							<label htmlFor={permission_name}>{permission_name}: </label>
-							<input
-								type="checkbox"
-								name={permission_name}
-								id={permission_name}
-								checked={checkedPermissions[permission_name] || false}
-								onChange={() => handleCheckBoxClick(permission_name)}
-							/>
-						</div>
-					))}
-				</div>
-			)}
-			<p className="text-green-500 text-sm">{message}</p>
-			<button
-				type="submit"
-				className="bg-primary text-white text-center px-2 py-2 my-5"
-			>
-				Submit
-			</button>
-		</form>
+		</>
 	);
-}
+};
+
+export default RolesPage;

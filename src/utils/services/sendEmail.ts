@@ -35,3 +35,27 @@ export async function sendForgotPasswordEmail(email: string, token: string) {
 		html: htmlBody,
 	});
 }
+
+export async function sendEmailWithUserCredentials(
+	firstName: string,
+	email: string,
+	password: string
+) {
+	const htmlBody = `
+	<h1>Welcome to Checkpoint</h1>
+	<p>Dear ${firstName},</p>
+	<p>Here are your credentials:</p>
+	<p><strong>Email:</strong> ${email}</p>
+	<p><strong>Password:</strong> ${password}</p>
+	<p>Please keep this information secure and do not share it with anyone.</p>
+	<p>Best regards,</p>
+	<p>Checkpoint</p>
+`;
+
+	await transporter.sendMail({
+		from: process.env.MAIL_USER,
+		to: email,
+		subject: "Welcome to checkpoint",
+		html: htmlBody,
+	});
+}
