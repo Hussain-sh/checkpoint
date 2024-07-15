@@ -28,3 +28,9 @@ export const getSelectedRolePermissionsQuery = `
     JOIN roles_permissions ON roles_permissions.permission_id = user_permissions.id
     WHERE roles_permissions.role_id = $1
 `;
+
+export const updateRoleQuery = `
+    Update user_roles 
+    set role_name = $1, updated_at = now()
+    where id = $2
+`;

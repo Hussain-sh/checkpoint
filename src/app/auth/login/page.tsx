@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FormSubmitButton from "../components/FormSubmitButton";
+import auditLogAction from "@/app/actions/auditLogAction";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState<string>("");
@@ -31,9 +32,22 @@ export default function LoginPage() {
 
 			if (result?.ok) {
 				router.push("/dashboard");
+				const auditLogData = {
+					logType: "info",
+					feature: "Authentication",
+					action: `User with email ${email} logged in with correct credentials`,
+					userId: null,
+				};
+				await auditLogAction(auditLogData);
 			} else {
 				setIsSubmitting(false);
-				// The error is shown depending on the field
+				const auditLogData = {
+					logType: "warning",
+					feature: "Authentication",
+					action: `User with email ${email} tried to log in with wrong credentials`,
+					userId: null,
+				};
+				await auditLogAction(auditLogData);
 				setError(result?.error || "Invalid Details... Please try again");
 			}
 		} catch (error) {

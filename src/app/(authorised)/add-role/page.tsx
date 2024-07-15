@@ -1,9 +1,12 @@
 "use client";
+import auditLogAction from "@/app/actions/auditLogAction";
 import { addPermissions } from "@/app/actions/role-management/addPermissions";
 import getPermissionIdFromPermissionName from "@/app/actions/role-management/getPermissionIdFromPermissionName";
 import { getPermissions } from "@/app/actions/role-management/getPermissions";
 import addNewRole from "@/app/actions/user-management/addNewRoleAction";
+import getUserDetails from "@/app/actions/user-management/getUserDetailsByIdAction";
 import FormSubmitButton from "@/app/auth/components/FormSubmitButton";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -13,6 +16,8 @@ interface PermissionTypes {
 }
 
 export default function AddRolePage() {
+	const { data: session } = useSession();
+	const id = String(session?.user?.id);
 	const router = useRouter();
 	const [permissions, setPermissions] = useState<PermissionTypes[]>([]);
 	const [roleName, setRoleName] = useState<string>("");
@@ -52,14 +57,28 @@ export default function AddRolePage() {
 					(key) => checkedPermissions[key]
 				);
 
+				const permissionNames: string[] = [];
 				// add selected permissions to the role
 				for (const permName of selectedPermissions) {
+					permissionNames.push(permName);
 					const perm = await getPermissionIdFromPermissionName(permName);
 					if (perm && perm.id) {
 						const response = await addPermissions(roleId, perm.id);
 						setMessage(response?.message || "");
 					}
 				}
+
+				const adminUserDetails = await getUserDetails(id);
+				const { email } = adminUserDetails;
+				const auditLogData = {
+					logType: "info",
+					feature: "Role Management",
+					action: `User with email ${email} created a new role - ${roleName} and assigned permissions: ${permissionNames.join(
+						", "
+					)}`,
+					userId: id,
+				};
+				await auditLogAction(auditLogData);
 				setIsSubmitting(false);
 				setMessage("Role added and permissions assigned successfully!");
 			} else {

@@ -39,6 +39,18 @@ export async function loginAction(email: string, password: string) {
 			};
 		}
 
+		// user deactivated
+		if (!user.is_active) {
+			return {
+				success: false,
+				errors: [
+					{
+						field: "email",
+					},
+				],
+			};
+		}
+
 		return {
 			success: true,
 			errors: [],

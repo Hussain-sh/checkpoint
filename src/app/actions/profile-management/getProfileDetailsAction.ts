@@ -3,7 +3,7 @@
 import { getProfileDetailsQuery } from "@/app/dbQueries/profile-management";
 import pool from "@/utils/postgres";
 
-export default async function getProfileDetails(id: number) {
+export default async function getProfileDetails(id: string) {
 	const client = await pool.connect();
 	try {
 		const result = await client.query(getProfileDetailsQuery, [id]);

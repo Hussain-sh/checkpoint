@@ -45,6 +45,7 @@ export default function UpdateUserDetailsForm() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const id = session?.user?.id;
+	const sessionEmail = session?.user.email;
 	const buttonText = currentLink === "add-user" ? "Add User" : "Update Profile"; // button text for form submit button
 	const [profileDetails, setProfileDetails] = useState<ProfileDetailsTypes>({
 		first_name: "",
@@ -235,6 +236,8 @@ export default function UpdateUserDetailsForm() {
 						action={formAction}
 					>
 						<input type="hidden" name="id" value={id} />
+						{/* Admin Email for audit logs */}
+						<input type="hidden" name="adminEmail" value={sessionEmail} />
 						<div className="flex flex-col gap-2">
 							<div className="flex gap-2 items-center">
 								<label htmlFor="firstName">FirstName:</label>

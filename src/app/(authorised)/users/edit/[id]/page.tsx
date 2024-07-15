@@ -39,6 +39,7 @@ interface FormState {
 export default function EditUserPage({ params }: ViewUserPageProps) {
 	const { data: session } = useSession();
 	const loggedInId = session?.user.id;
+	const loggedInEmail = session?.user.email;
 	const [userDetails, setUserDetails] = useState<UserDetailsTypes>({
 		first_name: "",
 		last_name: "",
@@ -124,9 +125,8 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 				action={formAction} // update user details action
 				className="w-4/5 h-auto flex flex-col gap-4 justify-start items-start px-12"
 			>
-				<div className="hidden">
-					<input type="hidden" value={id} name="id" />
-				</div>
+				<input type="hidden" value={id} name="id" />
+				<input type="hidden" value={loggedInEmail} name="adminEmail" />
 				<div className="flex gap-2">
 					<label htmlFor="firstName">FirstName:</label>
 					<input

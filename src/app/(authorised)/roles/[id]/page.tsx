@@ -1,9 +1,13 @@
 "use client";
+import auditLogAction from "@/app/actions/auditLogAction";
 import { addPermissions } from "@/app/actions/role-management/addPermissions";
 import getPermissionIdFromPermissionName from "@/app/actions/role-management/getPermissionIdFromPermissionName";
 import { getPermissions } from "@/app/actions/role-management/getPermissions";
 import getRoleNameByRoleId from "@/app/actions/role-management/getRoleNameByRoleId";
 import getSelectedRolePermissions from "@/app/actions/role-management/getSelectedRolePermissions";
+import updateRole from "@/app/actions/role-management/updateRoleAction";
+import getUserDetails from "@/app/actions/user-management/getUserDetailsByIdAction";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -21,6 +25,8 @@ interface PermissionTypes {
 }
 
 export default function ManageRolesPage({ params }: RoleParamsProps) {
+	const { data: session } = useSession();
+	const userId = String(session?.user?.id);
 	const router = useRouter();
 	const [role, setRole] = useState<string>("");
 	const [permissions, setPermissions] = useState<PermissionTypes[]>([]);
@@ -75,13 +81,28 @@ export default function ManageRolesPage({ params }: RoleParamsProps) {
 			(key) => checkedPermissions[key]
 		);
 
+		await updateRole(role, id);
+		const permissionNames: string[] = [];
 		for (const permName of selectedPermissions) {
+			permissionNames.push(permName);
 			const perm = await getPermissionIdFromPermissionName(permName);
 			if (perm && perm.id) {
 				const response = await addPermissions(id, perm.id);
 				setMessage(response?.message || "");
 			}
 		}
+
+		const adminUserDetails = await getUserDetails(userId);
+		const { email } = adminUserDetails;
+		const auditLogData = {
+			logType: "info",
+			feature: "Role Management",
+			action: `User with email ${email} updated role - ${role} and assigned permissions: ${permissionNames.join(
+				", "
+			)}`,
+			userId: userId,
+		};
+		await auditLogAction(auditLogData);
 	};
 
 	return (
@@ -106,6 +127,7 @@ export default function ManageRolesPage({ params }: RoleParamsProps) {
 						id="role"
 						className="formInputStyle pl-4"
 						value={role}
+						onChange={(e) => setRole(e.target.value)}
 					/>
 				</div>
 

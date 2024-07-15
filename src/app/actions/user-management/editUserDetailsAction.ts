@@ -6,6 +6,29 @@ import {
 } from "@/app/dbQueries/user-management";
 import pool from "@/utils/postgres";
 import fs from "node:fs";
+import auditLogAction from "../auditLogAction";
+import getUserDetails from "./getUserDetailsByIdAction";
+
+interface FormState {
+	message: string;
+	success: boolean;
+}
+
+interface NewProfileTypes {
+	first_name: string;
+	last_name: string;
+	profile_picture: string;
+	phone_number: string;
+	email: string;
+	date_of_birth: string | null;
+	is_active: boolean;
+	role_name: string;
+}
+
+type UpdatedField = {
+	field: string;
+	newValue: any;
+};
 
 function isTextEmpty(text: string) {
 	return !text || text.trim() === "";
@@ -21,9 +44,26 @@ function isValidEmail(email: string): boolean {
 	return emailPattern.test(email);
 }
 
-interface FormState {
-	message: string;
-	success: boolean;
+// get updated field for audit log
+function getUpdatedFields(
+	newProfile: NewProfileTypes,
+	currentProfile: NewProfileTypes
+): UpdatedField[] {
+	const updatedFields: UpdatedField[] = [];
+
+	for (const key in newProfile) {
+		if (
+			newProfile[key as keyof NewProfileTypes] !==
+			currentProfile[key as keyof NewProfileTypes]
+		) {
+			updatedFields.push({
+				field: key,
+				newValue: newProfile[key as keyof NewProfileTypes],
+			});
+		}
+	}
+
+	return updatedFields;
 }
 export default async function editUserDetails(
 	prevState: FormState,
@@ -37,8 +77,9 @@ export default async function editUserDetails(
 		dateOfBirth: formData.get("dob") as string,
 		phoneNumber: formData.get("phone") as string,
 		image: formData.get("image") as File,
-		status: formData.get("isActive") as string,
+		status: formData.get("isActive") === "true",
 		userId: formData.get("id") as string,
+		adminEmail: formData.get("adminEmail") as string,
 	};
 	const {
 		firstName,
@@ -50,6 +91,7 @@ export default async function editUserDetails(
 		image,
 		status,
 		userId,
+		adminEmail,
 	} = user;
 
 	// form validations
@@ -91,6 +133,22 @@ export default async function editUserDetails(
 		imagePath = result.rows[0].profile_picture;
 	}
 
+	const currentProfile = await getUserDetails(userId); // get user details to compare with the updated details
+	const newProfile: NewProfileTypes = {
+		first_name: firstName,
+		last_name: lastName,
+		profile_picture: imagePath,
+		phone_number: phoneNumber,
+		email: email,
+		date_of_birth: dateOfBirth,
+		is_active: status,
+		role_name: role,
+	};
+
+	const updatedFields = getUpdatedFields(newProfile, currentProfile); // compare and get the updated fields
+	const updatedFieldsString = updatedFields
+		.map((field) => `${field.field}: ${field.newValue}`)
+		.join(", ");
 	const formattedDateOfBirth = user.dateOfBirth ? new Date(dateOfBirth) : null;
 
 	try {
@@ -108,7 +166,13 @@ export default async function editUserDetails(
 			status,
 			userId,
 		]);
-
+		const auditLogData = {
+			logType: "info",
+			feature: "User Management",
+			action: `User with email: ${adminEmail} updated details of user with email: ${email}. Updated fields: ${updatedFieldsString}`,
+			userId: userId,
+		};
+		await auditLogAction(auditLogData);
 		return {
 			message: "User updated successfully!",
 			success: true,

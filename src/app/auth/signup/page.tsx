@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FormSubmitButton from "../components/FormSubmitButton";
+import auditLogAction from "@/app/actions/auditLogAction";
 
 interface ErrorMsg {
 	field: string;
@@ -81,7 +82,15 @@ export default function SignUpPage() {
 			confirmPassword: confirmPassword,
 		};
 
+		const auditLogData = {
+			logType: "info",
+			feature: "Authentication",
+			action: `User ${firstName} signed up with email ${email}`,
+			userId: null,
+		};
+
 		try {
+			await auditLogAction(auditLogData);
 			const response = await signUpAction(userData);
 			if (response?.success) {
 				router.push("/auth/verify-email");
