@@ -1,6 +1,8 @@
 "use server";
 import { getRoleIdByRoleNameQuery } from "@/app/dbQueries/role-management";
 import {
+	checkEmailExistsOnEditUserQuery,
+	checkEmailExistsQuery,
 	getUserProfilePictureQuery,
 	updateUserDetailsQuery,
 } from "@/app/dbQueries/user-management";
@@ -12,6 +14,7 @@ import getUserDetails from "./getUserDetailsByIdAction";
 interface FormState {
 	message: string;
 	success: boolean;
+	errors: ErrorMsg[];
 }
 
 interface NewProfileTypes {
@@ -29,6 +32,11 @@ type UpdatedField = {
 	field: string;
 	newValue: any;
 };
+
+interface ErrorMsg {
+	field: string;
+	message: string;
+}
 
 function isTextEmpty(text: string) {
 	return !text || text.trim() === "";
@@ -94,6 +102,7 @@ export default async function editUserDetails(
 		adminEmail,
 	} = user;
 
+	const errors: ErrorMsg[] = [];
 	// form validations
 	if (
 		isTextEmpty(firstName) ||
@@ -103,9 +112,17 @@ export default async function editUserDetails(
 		isTextEmpty(email) ||
 		!isValidEmail(email)
 	) {
+		errors.push({
+			field: "otherFields",
+			message: "Please give correct information",
+		});
+	}
+
+	if (errors.length > 0) {
 		return {
-			message: "Please provide correct details",
 			success: false,
+			message: "",
+			errors,
 		};
 	}
 
@@ -134,6 +151,7 @@ export default async function editUserDetails(
 	}
 
 	const currentProfile = await getUserDetails(userId); // get user details to compare with the updated details
+	const currentEmail = currentProfile.email; // check if email exists but current profile email is allowed
 	const newProfile: NewProfileTypes = {
 		first_name: firstName,
 		last_name: lastName,
@@ -154,7 +172,26 @@ export default async function editUserDetails(
 	try {
 		const getRoleId = await client.query(getRoleIdByRoleNameQuery, [role]);
 		const roleId = getRoleId.rows[0].id;
+		// check if user has entered any other email which exists in the database
+		const emailCheckResult = await client.query(
+			checkEmailExistsOnEditUserQuery,
+			[email, currentEmail]
+		);
 
+		if (emailCheckResult.rows.length > 0) {
+			errors.push({
+				field: "email",
+				message: "Email already exists.",
+			});
+		}
+
+		if (errors.length > 0) {
+			return {
+				success: false,
+				message: "",
+				errors,
+			};
+		}
 		await client.query(updateUserDetailsQuery, [
 			firstName,
 			lastName,
@@ -176,12 +213,14 @@ export default async function editUserDetails(
 		return {
 			message: "User updated successfully!",
 			success: true,
+			errors: [],
 		};
 	} catch (error) {
 		console.error("Error updating user details", error);
 		return {
 			message: "Error updating user details",
-			success: false,
+			success: true,
+			errors: [],
 		};
 	} finally {
 		client.release();

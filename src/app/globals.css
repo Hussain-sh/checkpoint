@@ -25,3 +25,27 @@ body {
 	outline: none;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Example shadow for focus state */
 }
+
+.ag-theme-quartz .ag-header {
+	background-color: #546fff;
+}
+
+.ag-theme-quartz .ag-header-cell {
+	color: white;
+}
+
+.low-priority {
+	color: #546fff;
+}
+
+.medium-priority {
+	color: #ffdd65;
+}
+
+.high-priority {
+	color: #c92532;
+}
+
+.css-13cymwt-control {
+	width: 15rem;
+}

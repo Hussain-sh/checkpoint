@@ -6,8 +6,6 @@ import {
 	MenuItems,
 	Transition,
 } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 interface NavBarDropdownProps {
 	fullName: string;
@@ -54,22 +52,6 @@ export default function NavBarDropdown({
 								>
 									Profile
 								</Link>
-							)}
-						</MenuItem>
-					</div>
-					<div className="py-1">
-						<MenuItem>
-							{({ focus }) => (
-								<button
-									type="submit"
-									className={classNames(
-										focus ? "bg-gray-100 text-gray-900" : "text-gray-700",
-										"block w-full px-4 py-2 text-left text-sm"
-									)}
-									onClick={() => signOut({ callbackUrl: "/" })}
-								>
-									Sign out
-								</button>
 							)}
 						</MenuItem>
 					</div>

@@ -10,6 +10,10 @@ export const checkEmailExistsQuery = `
     SELECT 1 FROM users WHERE email = $1;
 `;
 
+export const checkEmailExistsOnEditUserQuery = `
+    SELECT 1 FROM users WHERE email = $1 AND email != $2
+`;
+
 export const saveForgotPasswordToken = `
     UPDATE users 
     SET forgot_password_token = $1 

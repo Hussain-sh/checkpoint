@@ -67,10 +67,6 @@ export default function UpdateUserDetailsForm() {
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [errors, setErrors] = useState<ErrorMsg[]>([]);
 	const [message, setMessage] = useState<string>("");
-	const [state, formAction] = useFormState<FormState>(saveProfile, {
-		success: false,
-		errors: [],
-	}); // update profile details
 	const [showPasswordSuggestions, setShowPasswordSuggestions] =
 		useState<boolean>(false);
 	const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -85,6 +81,11 @@ export default function UpdateUserDetailsForm() {
 			number: false,
 			special: false,
 		});
+
+	const [state, formAction] = useFormState<FormState>(saveProfile, {
+		success: false,
+		errors: [],
+	}); // update profile details
 
 	// function for back button
 	const goBack = () => {
@@ -189,7 +190,7 @@ export default function UpdateUserDetailsForm() {
 	return (
 		<>
 			{showPasswordSuggestions && (
-				<div className="absolute top-[73%] left-[18%] h-auto z-30 bg-white p-4 flex flex-col gap-1 justify-start items-start border rounded-md shadow-md my-1">
+				<div className="absolute top-[73%] left-[32%] h-auto z-30 bg-white p-4 flex flex-col gap-1 justify-start items-start border rounded-md shadow-md my-1">
 					<p className={`text-sm`}>
 						Password strength:{" "}
 						<span className={`${getStrengthColor(strength)}`}>{strength}</span>

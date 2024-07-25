@@ -1,6 +1,7 @@
 "use client";
 import auditLogAction from "@/app/actions/auditLogAction";
 import { addPermissions } from "@/app/actions/role-management/addPermissions";
+import { deletePermissionsByRoleId } from "@/app/actions/role-management/deletePermissions";
 import getPermissionIdFromPermissionName from "@/app/actions/role-management/getPermissionIdFromPermissionName";
 import { getPermissions } from "@/app/actions/role-management/getPermissions";
 import getRoleNameByRoleId from "@/app/actions/role-management/getRoleNameByRoleId";
@@ -83,6 +84,8 @@ export default function ManageRolesPage({ params }: RoleParamsProps) {
 
 		await updateRole(role, id);
 		const permissionNames: string[] = [];
+		// delete all permissions for the role selected and update new permissions
+		await deletePermissionsByRoleId(id);
 		for (const permName of selectedPermissions) {
 			permissionNames.push(permName);
 			const perm = await getPermissionIdFromPermissionName(permName);

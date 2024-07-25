@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import { Switch } from "@headlessui/react";
 import clsx from "clsx";
@@ -18,7 +17,7 @@ interface Params {
 	id: string;
 }
 
-interface ViewUserPageProps {
+interface EditUserPageProps {
 	params: Params;
 }
 
@@ -35,8 +34,14 @@ interface UserDetailsTypes {
 interface FormState {
 	message: string;
 	success: boolean;
+	errors: string[];
 }
-export default function EditUserPage({ params }: ViewUserPageProps) {
+
+interface ErrorMsg {
+	field: string;
+	message: string;
+}
+export default function EditUserPage({ params }: EditUserPageProps) {
 	const { data: session } = useSession();
 	const loggedInId = session?.user.id;
 	const loggedInEmail = session?.user.email;
@@ -62,11 +67,13 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 	const [selectedRole, setSelectedRole] = useState<string>("");
 	const [image, setImage] = useState<string | null>(null);
 	const [message, setMessage] = useState<string>("");
+	const [errors, setErrors] = useState<ErrorMsg[]>([]);
 	const id = params.id;
 
 	const [state, formAction] = useFormState<FormState>(editUserDetails, {
 		message: null,
 		success: false,
+		errors: [],
 	});
 
 	// fetch user details on load of page
@@ -97,7 +104,12 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 		};
 		fetchRoles();
 		fetchUserDetails();
-	}, [id]);
+		if (state?.success) {
+			setMessage("User added successfully!");
+		} else {
+			setErrors(state.errors);
+		}
+	}, [id, state]);
 	const handleRoleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedRole(e.target.value);
 	};
@@ -110,6 +122,12 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 
 	const handleImagePicked = (pickedImage: string | null) => {
 		setImage(pickedImage);
+	};
+
+	// Show error depending on field
+	const getErrorMessage = (field: string) => {
+		const error = errors.find((error) => error.field === field);
+		return error ? error.message : null;
 	};
 	return (
 		<div className="w-full flex flex-col justify-center items-center">
@@ -162,6 +180,24 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 						value={userEmail}
 						required
 					/>
+					{getErrorMessage("email") && (
+						<div className="flex gap-1 items-center">
+							<svg
+								className="w-5 h-3"
+								viewBox="0 0 18 16"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M8.73281 1.9793C8.78906 1.88438 8.89102 1.82812 9 1.82812C9.10898 1.82812 9.21094 1.88438 9.26719 1.9793L16.2387 13.4297C16.2879 13.5105 16.3125 13.602 16.3125 13.6934C16.3125 13.9746 16.084 14.2031 15.8027 14.2031H2.19727C1.91602 14.2031 1.6875 13.9746 1.6875 13.6934C1.6875 13.5984 1.71211 13.507 1.76133 13.4297L8.73281 1.9793ZM7.29141 1.10039L0.319922 12.5508C0.108984 12.8953 0 13.2891 0 13.6934C0 14.9062 0.984375 15.8906 2.19727 15.8906H15.8027C17.0156 15.8906 18 14.9062 18 13.6934C18 13.2891 17.8875 12.8953 17.6801 12.5508L10.7086 1.10039C10.3465 0.50625 9.69961 0.140625 9 0.140625C8.30039 0.140625 7.65352 0.50625 7.29141 1.10039ZM10.125 11.9531C10.125 11.6548 10.0065 11.3686 9.79549 11.1576C9.58452 10.9467 9.29837 10.8281 9 10.8281C8.70163 10.8281 8.41548 10.9467 8.20451 11.1576C7.99353 11.3686 7.875 11.6548 7.875 11.9531C7.875 12.2515 7.99353 12.5376 8.20451 12.7486C8.41548 12.9596 8.70163 13.0781 9 13.0781C9.29837 13.0781 9.58452 12.9596 9.79549 12.7486C10.0065 12.5376 10.125 12.2515 10.125 11.9531ZM9.84375 5.48438C9.84375 5.0168 9.46758 4.64062 9 4.64062C8.53242 4.64062 8.15625 5.0168 8.15625 5.48438V8.85938C8.15625 9.32695 8.53242 9.70312 9 9.70312C9.46758 9.70312 9.84375 9.32695 9.84375 8.85938V5.48438Z"
+									fill="#C92532"
+								/>
+							</svg>
+							<p className="text-xs text-errorColor">
+								{getErrorMessage("email")}
+							</p>
+						</div>
+					)}
 				</div>
 				<div className="flex flex-col gap-2 py-12 items-center justify-center">
 					<div className="flex gap-2 justify-center">
@@ -242,10 +278,23 @@ export default function EditUserPage({ params }: ViewUserPageProps) {
 				<div className="flex justify-center items-center">
 					<p className="text-base text-green-500">{message}</p>
 				</div>
-				{state.success ? (
-					<p className="text-green-500">{state.message}</p>
-				) : (
-					<p className="text-red-500">{state.message}</p>
+				{getErrorMessage("otherFields") && (
+					<div className="flex gap-1 items-center">
+						<svg
+							className="w-5 h-3"
+							viewBox="0 0 18 16"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								d="M8.73281 1.9793C8.78906 1.88438 8.89102 1.82812 9 1.82812C9.10898 1.82812 9.21094 1.88438 9.26719 1.9793L16.2387 13.4297C16.2879 13.5105 16.3125 13.602 16.3125 13.6934C16.3125 13.9746 16.084 14.2031 15.8027 14.2031H2.19727C1.91602 14.2031 1.6875 13.9746 1.6875 13.6934C1.6875 13.5984 1.71211 13.507 1.76133 13.4297L8.73281 1.9793ZM7.29141 1.10039L0.319922 12.5508C0.108984 12.8953 0 13.2891 0 13.6934C0 14.9062 0.984375 15.8906 2.19727 15.8906H15.8027C17.0156 15.8906 18 14.9062 18 13.6934C18 13.2891 17.8875 12.8953 17.6801 12.5508L10.7086 1.10039C10.3465 0.50625 9.69961 0.140625 9 0.140625C8.30039 0.140625 7.65352 0.50625 7.29141 1.10039ZM10.125 11.9531C10.125 11.6548 10.0065 11.3686 9.79549 11.1576C9.58452 10.9467 9.29837 10.8281 9 10.8281C8.70163 10.8281 8.41548 10.9467 8.20451 11.1576C7.99353 11.3686 7.875 11.6548 7.875 11.9531C7.875 12.2515 7.99353 12.5376 8.20451 12.7486C8.41548 12.9596 8.70163 13.0781 9 13.0781C9.29837 13.0781 9.58452 12.9596 9.79549 12.7486C10.0065 12.5376 10.125 12.2515 10.125 11.9531ZM9.84375 5.48438C9.84375 5.0168 9.46758 4.64062 9 4.64062C8.53242 4.64062 8.15625 5.0168 8.15625 5.48438V8.85938C8.15625 9.32695 8.53242 9.70312 9 9.70312C9.46758 9.70312 9.84375 9.32695 9.84375 8.85938V5.48438Z"
+								fill="#C92532"
+							/>
+						</svg>
+						<p className="text-xs text-errorColor">
+							{getErrorMessage("otherFields")}
+						</p>
+					</div>
 				)}
 				<button
 					type="submit"
