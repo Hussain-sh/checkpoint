@@ -13,7 +13,9 @@ export const saveProfileDetailsQuery = `
 
 export const getProfileDetailsQuery = `
     select 
-    first_name, last_name, email, date_of_birth, phone_number, profile_picture
+    users.first_name, users.last_name, users.email, users.date_of_birth, users.phone_number, users.profile_picture, user_roles.role_name
     from users
-    where id = $1
+    join 
+    user_roles on users.role_id = user_roles.id
+    where users.id = $1
 `;

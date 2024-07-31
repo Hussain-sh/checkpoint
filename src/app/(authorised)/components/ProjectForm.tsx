@@ -258,6 +258,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
 		const result = await createProject(projectDetails);
 		if (result?.success) {
+			const teamMemberNames = selectedTeamMembers
+				.map((member) => member.label)
+				.join(", ");
 			if (result.editTeams) {
 				const projectId = result.projectId.id;
 				if (selectedTeamMembers.length !== 0) {
@@ -270,15 +273,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 				setIsOpen(false);
 				onProjectUpdate();
 				setMessage("Project updated!");
+				// audit logs to update team members for the project
+				if (user_id && teamMemberNames.length !== 0) {
+					const auditLogData = {
+						logType: "info",
+						feature: "Project management",
+						action: `User with email ${loggedInUserEmail} updated ${teamMemberNames} as team members to project ${projectName}`,
+						userId: user_id,
+					};
+					await auditLogAction(auditLogData);
+				}
 			} else {
 				const projectId = result.projectId.id;
 				for (const dev of selectedTeamMembers) {
 					await addProjectTeam(projectId, dev.value, selectedProjectManager);
 				}
-				const teamMemberNames = selectedTeamMembers
-					.map((member) => member.label)
-					.join(", ");
-
+				// audit logs to add team members for the project
 				if (user_id) {
 					const auditLogData = {
 						logType: "info",

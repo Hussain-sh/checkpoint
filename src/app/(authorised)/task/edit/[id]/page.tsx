@@ -13,6 +13,7 @@ import {
 import { useFormState } from "react-dom";
 import editTaskDetails from "@/app/actions/task-management/editTaskAction";
 import { redirect } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface Params {
 	id: number;
@@ -55,6 +56,9 @@ interface TeamMembers {
 
 export default function ViewTaskPage({ params }: EditTaskPageProps) {
 	const id = params.id;
+	const { data: session } = useSession();
+	const user_id = session?.user.id;
+	const loggedInUserEmail = session?.user.email ?? "";
 	const [taskDetails, setTaskDetails] = useState<TaskDetailsTypes>({
 		id: null,
 		task_name: "",
@@ -83,6 +87,7 @@ export default function ViewTaskPage({ params }: EditTaskPageProps) {
 		errors: [],
 		success: false,
 	});
+
 	useEffect(() => {
 		const fetchTaskDetails = async () => {
 			const response = await getTaskDetails(id);
@@ -186,6 +191,8 @@ export default function ViewTaskPage({ params }: EditTaskPageProps) {
 					/>
 					<input type="hidden" value={selectedAssignee} name="assignee" />
 					<input type="hidden" value={id} name="id" />
+					<input type="hidden" value={user_id} name="user_id" />
+					<input type="hidden" value={loggedInUserEmail} name="email" />
 				</form>
 			</div>
 			<div className="w-1/4 flex flex-col gap-4">

@@ -116,6 +116,26 @@ export default async function createProject(formData: FormData) {
 				imagePath,
 			]);
 			const projectId = result.rows[0];
+			// update project audit logs
+			const projectDetailsForAuditLogs = {
+				projectName: projectName,
+				projectPriority: projectPriority,
+				lead: lead,
+				projectDescription: projectDescription,
+				image: imagePath,
+			};
+			const projectDetailsValues = Object.entries(projectDetailsForAuditLogs)
+				.map(([key, value]) => `${key}: ${value}`)
+				.join(", ");
+			if (userId) {
+				const auditLogData = {
+					logType: "info",
+					feature: "Project management",
+					action: `User with email ${loggedInUserEmail} updated project ${projectName}. Project details : ${projectDetailsValues}`,
+					userId: userId,
+				};
+				await auditLogAction(auditLogData);
+			}
 			return {
 				success: true,
 				projectId,

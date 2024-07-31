@@ -5,6 +5,7 @@ import {
 	editProjectQuery,
 } from "@/app/dbQueries/project-management";
 import {
+	addSubTaskQuery,
 	addTaskQuery,
 	changeTaskStatusQuery,
 	moveTaskToArchiveQuery,
@@ -23,6 +24,12 @@ interface FormData {
 	projectName: string;
 	user_id: number | undefined;
 	loggedInUserEmail: string | undefined | null;
+}
+
+interface SubTaskDetails {
+	subTaskName: string;
+	subTaskDescription: string;
+	taskId: number | null;
 }
 
 interface ErrorMsg {
@@ -137,6 +144,42 @@ export async function moveTaskToArchive(taskId: number | null) {
 		};
 	} catch (error) {
 		console.error("Error updating task", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function createSubTask(subTaskDetails: SubTaskDetails) {
+	const { subTaskName, subTaskDescription, taskId } = subTaskDetails;
+
+	const errors: ErrorMsg[] = [];
+	if (isTextEmpty(subTaskName))
+		errors.push({
+			field: "subTaskName",
+			message: "sub-task name is required.",
+		});
+
+	if (errors.length > 0) {
+		return {
+			success: false,
+			errors,
+		};
+	}
+	const client = await pool.connect();
+
+	try {
+		await client.query(addSubTaskQuery, [
+			subTaskName,
+			subTaskDescription,
+			taskId,
+		]);
+
+		return {
+			success: true,
+			errors: [],
+		};
+	} catch (error) {
+		console.error("Error adding sub-task", error);
 	} finally {
 		client.release();
 	}

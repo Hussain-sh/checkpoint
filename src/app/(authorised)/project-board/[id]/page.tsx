@@ -446,22 +446,25 @@ export default function ViewProjectPage({ params }: ViewProjectPageProps) {
 								</option>
 							))}
 						</select>
-						<select
-							id="employees"
-							name="employees"
-							className="border border-primaryBorder rounded-lg capitalize px-2"
-							value={selectedEmployeeFIlter}
-							onChange={handleEmployeeChange}
-						>
-							<option selected className="px-4" value="">
-								Employees
-							</option>
-							{projectEmployees.map((employee, index) => (
-								<option key={index} value={employee.fullName}>
-									{employee.fullName}
+						{role !== "Developer" && (
+							<select
+								id="employees"
+								name="employees"
+								className="border border-primaryBorder rounded-lg capitalize px-2"
+								value={selectedEmployeeFIlter}
+								onChange={handleEmployeeChange}
+							>
+								<option selected className="px-4" value="">
+									Employees
 								</option>
-							))}
-						</select>
+								{projectEmployees.map((employee, index) => (
+									<option key={index} value={employee.fullName}>
+										{employee.fullName}
+									</option>
+								))}
+							</select>
+						)}
+
 						<div>
 							<input
 								type="text"

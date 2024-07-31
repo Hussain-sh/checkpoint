@@ -1,5 +1,6 @@
 "use server";
 import {
+	getSubTasksQuery,
 	getTaskDetailsQuery,
 	getTaskPrioritiesQuery,
 	getTasksByProjectIdAndAssigneeIdQuery,
@@ -60,6 +61,19 @@ export async function getTaskDetails(taskId: number) {
 		return task;
 	} catch (error) {
 		console.error("Error fetching task", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function getSubTasks(taskId: number) {
+	const client = await pool.connect();
+	try {
+		const result = await client.query(getSubTasksQuery, [taskId]);
+		const subTasks = result.rows;
+		return subTasks;
+	} catch (error) {
+		console.error("Error fetching sub tasks", error);
 	} finally {
 		client.release();
 	}

@@ -40,6 +40,11 @@ export const editTaskQuery = `
     where id = $1
 `;
 
+export const addSubTaskQuery = `
+   INSERT INTO sub_tasks (sub_task_name, sub_task_description, task_id, created_at, updated_at)
+VALUES ($1, $2, $3, now(), now());
+`;
+
 export const changeTaskStatusQuery = `
     Update tasks 
     set 
@@ -121,4 +126,10 @@ JOIN
     users AS assignee ON tasks.assignee_id = assignee.id
 WHERE 
     tasks.id = $1;
+`;
+
+export const getSubTasksQuery = `
+    select sub_tasks.id, sub_tasks.sub_task_name, sub_tasks.sub_task_description, sub_tasks.task_id from sub_tasks 
+    join tasks on sub_tasks.task_id = tasks.id
+    where task_id = $1 AND tasks.is_archived = false
 `;
