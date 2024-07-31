@@ -20,14 +20,13 @@ SELECT
     $3, 
     u.id, 
     tp.id, 
-    a.id, 
+    $6, 
     p.id, 
     now(), 
     now()
 FROM 
     (SELECT id FROM users WHERE first_name = $4) u,
     (SELECT id FROM task_priorities WHERE priority_name = $5) tp,
-    (SELECT id FROM users WHERE first_name = $6) a,
     (SELECT id FROM projects WHERE id = $7) p;
 `;
 
@@ -48,12 +47,24 @@ export const changeTaskStatusQuery = `
     where 
     id = $1
 `;
+
+export const moveTaskToArchiveQuery = `
+    update tasks 
+    set
+    is_archived = true
+    where id = $1
+`;
+
 export const getTasksQuery = `
     SELECT 
     t.id,
     t.task_name, 
     ps.stage_name, 
     tp.priority_name,
+    t.assignee_id,
+    t.priority_id,
+    u.first_name,
+    u.last_name,
     t.stage_id
 FROM 
     tasks t
@@ -61,8 +72,10 @@ JOIN
     project_stages ps ON t.stage_id = ps.id
 JOIN 
     task_priorities tp ON t.priority_id = tp.id
+JOIN
+    users u ON t.assignee_id = u.id
 WHERE 
-    t.project_id = $1
+    t.project_id = $1 AND t.is_archived = false
 `;
 
 export const getTasksByProjectIdAndAssigneeIdQuery = `
@@ -79,7 +92,7 @@ JOIN
 JOIN 
     task_priorities tp ON t.priority_id = tp.id
 WHERE 
-    t.project_id = $1 AND t.assignee_id = $2
+    t.project_id = $1 AND t.assignee_id = $2 AND t.is_archived = false
 `;
 
 export const getTaskDetailsQuery = `

@@ -1,3 +1,4 @@
+import auditLogAction from "@/app/actions/auditLogAction";
 import createProject, {
 	addProjectTeam,
 } from "@/app/actions/project-management/addProjectAction";
@@ -11,6 +12,8 @@ import getProjectPriorities, {
 	getTeamMembersFromProjectId,
 	getUsersWithViewProjectPermissions,
 } from "@/app/actions/project-management/getData";
+import sendEmailOnProjectCreation from "@/app/actions/project-management/sendEmailAction";
+import { getSession } from "next-auth/react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
@@ -231,6 +234,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		const session = await getSession();
+		const first_name = session?.user.first_name;
+		const last_name = session?.user.last_name;
+		const loggedInUserEmail = session?.user.email ?? "";
+		const user_id = session?.user.id;
+
+		const loggedInUserFullName = `${first_name} ${last_name}`;
+
 		// project details for add project and edit project
 		const projectDetails = {
 			id: projectId,
@@ -240,6 +251,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 			team: selectedTeamMembers,
 			projectDescription: projectDesc,
 			image: pickedImage || "",
+			projectCreator: loggedInUserFullName,
+			loggedInUserEmail: loggedInUserEmail,
+			userId: user_id,
 		};
 
 		const result = await createProject(projectDetails);
@@ -251,19 +265,32 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 				}
 
 				for (const dev of selectedTeamMembers) {
-					await editProjectTeam(projectId, dev.value);
+					await editProjectTeam(projectId, dev.value, selectedProjectManager);
 				}
 				setIsOpen(false);
 				onProjectUpdate();
-				setMessage("Project updated successfully!");
+				setMessage("Project updated!");
 			} else {
 				const projectId = result.projectId.id;
 				for (const dev of selectedTeamMembers) {
-					await addProjectTeam(projectId, dev.value);
+					await addProjectTeam(projectId, dev.value, selectedProjectManager);
 				}
+				const teamMemberNames = selectedTeamMembers
+					.map((member) => member.label)
+					.join(", ");
 
+				if (user_id) {
+					const auditLogData = {
+						logType: "info",
+						feature: "Project management",
+						action: `User with email ${loggedInUserEmail} added ${teamMemberNames} as team members to project ${projectName}`,
+						userId: user_id,
+					};
+					await auditLogAction(auditLogData);
+				}
 				setIsOpen(false);
-				setMessage("Project added successfully!");
+				setMessage("Project added!");
+				await sendEmailOnProjectCreation(projectDetails); // send email after project created
 			}
 		} else {
 			// setIsOpen(true);

@@ -7,6 +7,7 @@ import {
 import pool from "@/utils/postgres";
 import base64ToFile from "@/utils/services/convertBase64toFile";
 import fs from "node:fs";
+import auditLogAction from "../auditLogAction";
 
 interface SelectedTeamMembers {
 	value: string | null;
@@ -21,6 +22,9 @@ interface FormData {
 	lead: string;
 	projectDescription: string;
 	image: File | string;
+	projectCreator: string;
+	loggedInUserEmail: string;
+	userId: number | undefined;
 }
 
 interface ErrorMsg {
@@ -41,6 +45,8 @@ export default async function createProject(formData: FormData) {
 		team,
 		projectDescription,
 		image,
+		loggedInUserEmail,
+		userId,
 	} = formData;
 
 	const [first_name] = lead.split(" ");
@@ -124,6 +130,27 @@ export default async function createProject(formData: FormData) {
 				imagePath,
 			]);
 			const projectId = result.rows[0];
+
+			// audit logs for create projects
+			const projectDetailsForAuditLogs = {
+				projectName: projectName,
+				projectPriority: projectPriority,
+				lead: lead,
+				projectDescription: projectDescription,
+				image: imagePath,
+			};
+			const projectDetailsValues = Object.entries(projectDetailsForAuditLogs)
+				.map(([key, value]) => `${key}: ${value}`)
+				.join(", ");
+			if (userId) {
+				const auditLogData = {
+					logType: "info",
+					feature: "Project management",
+					action: `User with email ${loggedInUserEmail} created a new project. Project details : ${projectDetailsValues}`,
+					userId: userId,
+				};
+				await auditLogAction(auditLogData);
+			}
 			return {
 				success: true,
 				projectId,
@@ -139,11 +166,13 @@ export default async function createProject(formData: FormData) {
 
 export async function addProjectTeam(
 	project_id: number,
-	user_id: string | null
+	user_id: string | null,
+	projectManager: string
 ) {
+	const [first_name] = projectManager.split(" ");
 	const client = await pool.connect();
 	try {
-		await client.query(addProjectTeamQuery, [project_id, user_id]);
+		await client.query(addProjectTeamQuery, [project_id, user_id, first_name]);
 		return {
 			success: true,
 		};

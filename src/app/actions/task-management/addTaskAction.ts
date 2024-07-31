@@ -7,8 +7,10 @@ import {
 import {
 	addTaskQuery,
 	changeTaskStatusQuery,
+	moveTaskToArchiveQuery,
 } from "@/app/dbQueries/task-management";
 import pool from "@/utils/postgres";
+import auditLogAction from "../auditLogAction";
 
 interface FormData {
 	id: number | null;
@@ -18,6 +20,9 @@ interface FormData {
 	dueDate: string;
 	createdBy: string;
 	taskDescription: string;
+	projectName: string;
+	user_id: number | undefined;
+	loggedInUserEmail: string | undefined | null;
 }
 
 interface ErrorMsg {
@@ -38,9 +43,12 @@ export default async function createTask(formData: FormData) {
 		dueDate,
 		createdBy,
 		taskDescription,
+		projectName,
+		user_id,
+		loggedInUserEmail,
 	} = formData;
 
-	const [first_name] = assignee.split(" ");
+	const [creator_first_name] = createdBy.split(" ");
 	const errors: ErrorMsg[] = [];
 
 	if (isTextEmpty(taskName))
@@ -71,11 +79,31 @@ export default async function createTask(formData: FormData) {
 			taskName,
 			taskDescription,
 			dueDate,
-			createdBy,
+			creator_first_name,
 			taskPriority,
-			first_name,
+			assignee,
 			id,
 		]);
+
+		// audit logs for create projects
+		const taskDetailsForAuditLogs = {
+			taskName: taskName,
+			taskPriority: taskPriority,
+			taskDescription: taskDescription,
+			dueDate: dueDate,
+		};
+		const taskDetailsValues = Object.entries(taskDetailsForAuditLogs)
+			.map(([key, value]) => `${key}: ${value}`)
+			.join(", ");
+		if (user_id) {
+			const auditLogData = {
+				logType: "info",
+				feature: "Task management",
+				action: `User with email ${loggedInUserEmail} created a new task under project ${projectName} . Task details : ${taskDetailsValues}`,
+				userId: user_id,
+			};
+			await auditLogAction(auditLogData);
+		}
 		return {
 			success: true,
 		};
@@ -90,6 +118,20 @@ export async function changeTaskStatus(taskId: string, stageName: string) {
 	const client = await pool.connect();
 	try {
 		await client.query(changeTaskStatusQuery, [taskId, stageName]);
+		return {
+			success: true,
+		};
+	} catch (error) {
+		console.error("Error updating task", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function moveTaskToArchive(taskId: number | null) {
+	const client = await pool.connect();
+	try {
+		await client.query(moveTaskToArchiveQuery, [taskId]);
 		return {
 			success: true,
 		};

@@ -5,6 +5,9 @@ import {
 	getProjectPrioritiesQuery,
 	getProjectsQuery,
 	getProjectStagesQuery,
+	getRecentProjectsQuery,
+	getRecentTasksQuery,
+	getTasksByProjectIdQuery,
 	getTeamMembersFromProjectIdQuery,
 	getUsersByProjectQuery,
 	getUsersByRoleQuery,
@@ -66,7 +69,7 @@ export async function getDevelopersByProjectId(projectId: number) {
 	}
 }
 
-export async function getProjectDetails(projectId: number) {
+export async function getProjectDetails(projectId: number | null) {
 	const client = await pool.connect();
 	try {
 		const result = await client.query(getProjectDetailsQuery, [projectId]);
@@ -128,6 +131,48 @@ export async function getProjectStages() {
 		return project_stages;
 	} catch (error) {
 		console.error("Error fetching projects", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function getRecentProjects(user_id: number, role_id: number) {
+	const client = await pool.connect();
+	try {
+		const result = await client.query(getRecentProjectsQuery, [
+			user_id,
+			role_id,
+		]);
+		const recent_projects = result.rows;
+		return recent_projects;
+	} catch (error) {
+		console.error("Error fetching recent projects", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function getRecentTasks(user_id: number, role_id: number) {
+	const client = await pool.connect();
+	try {
+		const result = await client.query(getRecentTasksQuery, [user_id, role_id]);
+		const recent_tasks = result.rows;
+		return recent_tasks;
+	} catch (error) {
+		console.error("Error fetching recent projects", error);
+	} finally {
+		client.release();
+	}
+}
+
+export async function getTasksByProjectId(project_id: number | null) {
+	const client = await pool.connect();
+	try {
+		const result = await client.query(getTasksByProjectIdQuery, [project_id]);
+		const tasks = result.rows;
+		return tasks;
+	} catch (error) {
+		console.error("Error fetching recent projects", error);
 	} finally {
 		client.release();
 	}

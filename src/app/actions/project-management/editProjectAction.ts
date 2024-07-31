@@ -17,11 +17,13 @@ export async function deleteProjectTeams(project_id: number) {
 }
 export async function editProjectTeam(
 	project_id: number,
-	user_id: string | null
+	user_id: string | null,
+	projectManager: string
 ) {
+	const [first_name] = projectManager.split(" ");
 	const client = await pool.connect();
 	try {
-		await client.query(addProjectTeamQuery, [project_id, user_id]);
+		await client.query(addProjectTeamQuery, [project_id, user_id, first_name]);
 		return {
 			success: true,
 		};

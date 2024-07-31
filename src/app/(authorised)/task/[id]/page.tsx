@@ -69,12 +69,28 @@ export default function ViewTaskPage({ params }: ViewTaskPageProps) {
 			<div className="w-3/4 bg-white p-5 flex flex-col gap-4 justify-start items-start rounded-lg">
 				<div className="w-full flex justify-between items-center ">
 					<p className="text-lg font-bold">{taskDetails.task_name}</p>
-					<Link
-						href={`/task/edit/${id}`}
-						className="px-4 py-2 text-white text-sm bg-primary rounded-lg text-center"
-					>
-						Edit Task
-					</Link>
+					<div className="flex gap-4 items-center">
+						<Link
+							href={`/task/edit/${id}`}
+							className="px-4 py-2 text-white text-sm bg-primary rounded-lg text-center flex gap-2 items-center"
+						>
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 20 20"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M1 19H19M11.7844 3.31171C11.7844 3.31171 11.7844 4.94634 13.419 6.58096C15.0537 8.21559 16.6883 8.21559 16.6883 8.21559M5.31963 15.9881L8.75234 15.4977C9.2475 15.4269 9.70636 15.1975 10.06 14.8438L18.3229 6.58096C19.2257 5.67818 19.2257 4.21449 18.3229 3.31171L16.6883 1.67708C15.7855 0.774305 14.3218 0.774305 13.419 1.67708L5.15616 9.93996C4.80248 10.2936 4.57305 10.7525 4.50231 11.2477L4.01193 14.6804C3.90295 15.4432 4.5568 16.097 5.31963 15.9881Z"
+									stroke="white"
+									stroke-width="1.5"
+									stroke-linecap="round"
+								/>
+							</svg>
+							Edit Task
+						</Link>
+					</div>
 				</div>
 				<div className="flex flex-col justify-start gap-4">
 					<p className="text-lg font-bold">Description</p>

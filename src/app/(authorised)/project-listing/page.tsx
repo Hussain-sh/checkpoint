@@ -12,6 +12,7 @@ import { Dialog, DialogPanel, DialogTitle, Button } from "@headlessui/react";
 import {
 	getAllProjects,
 	getArchivedProjects,
+	getProjectDetails,
 } from "@/app/actions/project-management/getData";
 
 import { deleteProject } from "@/app/actions/project-management/deleteProjectAction";
@@ -19,6 +20,7 @@ import { useSession } from "next-auth/react";
 import getSelectedRolePermissions from "@/app/actions/role-management/getSelectedRolePermissions";
 import PriorityFilter from "../components/PriorityFilter";
 import ProjectForm from "../components/ProjectForm";
+import auditLogAction from "@/app/actions/auditLogAction";
 
 interface ProjectDetailsType {
 	id: number;
@@ -30,9 +32,22 @@ interface ProjectDetailsType {
 	is_archived: boolean;
 }
 
+interface RowData {
+	id: number;
+	name: string;
+	key: string;
+	priority: string;
+	lead: string;
+	profile_picture: string;
+	actions: string;
+	is_archived: boolean;
+}
+
 export default function ProjectListingPage() {
 	const { data: session } = useSession();
 	const role_id = session?.user.role_id || 1;
+	const loggedInUserEmail = session?.user.email;
+	const user_id = session?.user.id;
 	const [projectData, setProjectData] = useState<ProjectDetailsType[]>([]);
 	const [searchText, setSearchText] = useState<string>("");
 	let [isOpen, setIsOpen] = useState(false);
@@ -41,7 +56,7 @@ export default function ProjectListingPage() {
 	const [message, setMessage] = useState<string>("");
 	const gridRef = useRef<AgGridReact>(null);
 	const [deleteProjectId, setDeleteProjectId] = useState<number | null>(null);
-	const [rowData, setRowData] = useState<[]>([]);
+	const [rowData, setRowData] = useState<RowData[]>([]);
 	const [hasEditPermissions, setHasEditPermissions] = useState<boolean>(false);
 	const [hasDeletePermissions, setHasDeletePermissions] =
 		useState<boolean>(false);
@@ -56,7 +71,17 @@ export default function ProjectListingPage() {
 	const [isArchived, setIsArchived] = useState<boolean>(false);
 
 	const handleDelete = async () => {
+		const projectDetails = await getProjectDetails(deleteProjectId); // project details for audit logs
 		const result = await deleteProject(deleteProjectId);
+		if (user_id) {
+			const auditLogData = {
+				logType: "info",
+				feature: "Project management",
+				action: `User with email ${loggedInUserEmail} archived project: ${projectDetails.project_name}`,
+				userId: user_id,
+			};
+			await auditLogAction(auditLogData);
+		}
 		const updatedProjects = projectData.filter(
 			(project) => project.id !== deleteProjectId
 		);

@@ -27,8 +27,8 @@ export const addProjectQuery = `
 `;
 
 export const addProjectTeamQuery = `
-    insert into project_teams (project_id, user_id, created_at, updated_at)
-    values ($1, $2, now(), now())
+    insert into project_teams (project_id, user_id, lead_id, created_at, updated_at)
+    values ($1, $2, (select id from users where first_name = $3), now(), now())
 `;
 
 export const getProjectsQuery = `
@@ -61,6 +61,7 @@ export const getProjectDetailsQuery = `
     select 
     projects.id, 
     projects.project_name, 
+    projects.user_id,
     users.first_name, 
     users.last_name, 
     users.profile_picture, 
@@ -111,4 +112,64 @@ export const deleteProjectQuery = `
 
 export const getProjectStagesQuery = `
     select id, stage_name from project_stages
+`;
+
+export const getRecentProjectsQuery = `
+    SELECT 
+    projects.id, 
+    projects.project_name, 
+    projects.project_icon, 
+    project_priorities.priority_name
+FROM 
+    projects
+JOIN 
+    project_priorities 
+ON 
+    projects.priority_id = project_priorities.id
+JOIN 
+    users 
+ON 
+    projects.user_id = users.id
+WHERE 
+    projects.user_id = $1 
+    AND users.role_id = $2 AND projects.is_archived = false
+Order By projects.created_at DESC LIMIT 3
+`;
+
+export const getRecentTasksQuery = `
+    SELECT 
+    tasks.id, 
+    tasks.task_name, 
+    project_stages.stage_name, 
+    task_priorities.priority_name
+FROM 
+    tasks
+JOIN 
+    task_priorities 
+ON 
+    tasks.priority_id = task_priorities.id
+JOIN 
+    project_stages 
+ON 
+    tasks.stage_id = project_stages.id
+JOIN 
+    users 
+ON 
+    tasks.assignee_id = users.id
+WHERE 
+    tasks.assignee_id = $1 
+    AND users.role_id = $2 AND tasks.is_archived = false
+Order By tasks.created_at DESC LIMIT 3
+`;
+
+export const getRecentProjectsForDeveloperRoleQuery = `
+select project_name,project_icon,pp.priority_name from projects as proj
+inner join project_teams as pt on proj.user_id=pt.lead_id
+join project_priorities as pp on proj.priority_id = pp.id
+where pt.user_id=84 and proj.is_archived=false
+group by (project_name,project_icon,pp.priority_name)  limit 5;
+`;
+
+export const getTasksByProjectIdQuery = `
+    select id, task_name, stage_id from tasks where project_id = $1
 `;

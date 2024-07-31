@@ -163,6 +163,12 @@ export default function UserListingPage() {
 							</svg>
 						</button>
 					</Link>
+					<Link
+						href="/audit-logs"
+						className="px-4 py-2 text-white bg-primary text-center rounded-lg flex gap-2 justify-center items-center"
+					>
+						Show Audit logs
+					</Link>
 				</div>
 			</div>
 			<div className="h-[80vh] w-full px-10">

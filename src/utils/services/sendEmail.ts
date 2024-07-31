@@ -59,3 +59,77 @@ export async function sendEmailWithUserCredentials(
 		html: htmlBody,
 	});
 }
+
+export async function sendProjectCreatedEmail(
+	first_name: string,
+	project_name: string,
+	creator_name: string,
+	email: string
+) {
+	const htmlBody = `<h1 className="text-primary">Project Created</h1>
+	<p>Dear ${first_name},</p>
+	<p>Project <strong>${project_name}</strong> was created by <strong>${creator_name}</strong>.</p>
+	<p>You are one of the team members added to this project.</p>
+	<p>Best regards,</p>
+	<p>Checkpoint</p>`;
+
+	await transporter.sendMail({
+		from: process.env.MAIL_USER,
+		to: email,
+		subject: "New project",
+		html: htmlBody,
+	});
+}
+
+export async function sendAssignTaskEmail(
+	taskName: string,
+	first_name: string,
+	createdBy: string,
+	projectName: string,
+	dueDate: string,
+	email: string
+) {
+	const htmlBody = `
+	<h1>${taskName}</h1>
+	<p>Dear ${first_name}</p>
+	<p>You were assigned this task by ${createdBy}</p>
+	<p>Project: <strong>${projectName}</strong></p>
+	<p>Task Status: <strong>Todo</strong></p>
+	<p>The due date for the task is: ${dueDate}</p>
+	<p>Best regards,</p>
+	<p>Checkpoint</p>`;
+
+	await transporter.sendMail({
+		from: process.env.MAIL_USER,
+		to: email,
+		subject: `New task creator for project ${projectName}`,
+		html: htmlBody,
+	});
+}
+
+export async function sendStatusChangeEmail(
+	task_name: string,
+	project_name: string,
+	updated_by: string,
+	status: string,
+	first_name: string,
+	email: string
+) {
+	const htmlBody = `
+	<h1>Task Status Updated</h1>
+	<p>Dear ${first_name},</p>
+	<p>Project: <strong>${project_name}</strong></p>
+	<p>Task Name: <strong>${task_name}</strong></p>
+	<p>Updated By: <strong>${updated_by}</strong></p>
+	<p>New Status: <strong>${status}</strong></p>
+	<p>Best regards,</p>
+	<p>Checkpoint</p>
+	`;
+
+	await transporter.sendMail({
+		from: process.env.MAIL_USER,
+		to: email,
+		subject: `Status updated for task ${task_name}`,
+		html: htmlBody,
+	});
+}
