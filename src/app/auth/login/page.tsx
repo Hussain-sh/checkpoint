@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FormSubmitButton from "../components/FormSubmitButton";
 import auditLogAction from "@/app/actions/auditLogAction";
+import { Suspense } from "react";
 
-export default function LoginPage() {
+function LoginContent() {
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [error, setError] = useState<string>("");
@@ -202,5 +203,13 @@ export default function LoginPage() {
 				</form>
 			</div>
 		</div>
+	);
+}
+
+export default function LoginPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<LoginContent />
+		</Suspense>
 	);
 }
