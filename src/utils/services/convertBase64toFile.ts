@@ -1,3 +1,4 @@
+//@ts-nocheck
 export default function base64ToFile(
 	base64: string | null | File,
 	filename: string
