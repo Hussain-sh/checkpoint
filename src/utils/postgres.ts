@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-
 const pool = new Pool({
 	host: process.env.DB_HOST,
 	port: process.env.DB_PORT ? Number(process.env.DB_PORT) : undefined,
